@@ -44,8 +44,8 @@ var ex29 = function(button) {
 
 				// Stop traversing the button clicks
 				subscription.dispose();
-      }
-			});
+      })
+	};
       
       
 var ex30 = function(button) {
@@ -61,6 +61,34 @@ var ex30 = function(button) {
 			alert("Button was clicked once. Stopping Traversal.");
 		});
 }
-		
+
+/*
+Exercise 31: Completing sequences with takeUntil()
+
+Have you ever wanted to unsubscribe from one Event when another Event fires? 
+Observable's takeUntil() function is a convenient way of completing a sequence
+ when another Event occurs. Here's how takeUntil() works: 
+*/
+var ex31 = function(pricesNASDAQ, printRecord, stopButton) {
+	var stopButtonClicks = Observable.fromEvent(stopButton, 'click'), // ----- To finish this expression, use Observable.fromEvent to convert the "click" event on the stop button to an Observable
+		microsoftPrices =
+			pricesNASDAQ.
+				filter(function(priceRecord) {
+					return priceRecord.name === "MSFT";
+				}).takeUntil(stopButtonClicks);
+				// ----- To finish this expression, use takeUntil to complete the sequence when stopButtonClicks fires.
+
+	microsoftPrices.
+		forEach(function(priceRecord) {
+			printRecord(priceRecord);
+		});
+}
+
+/* Here's what we learned in this section:
+
+    We can traverse Observables using forEach().
+    We can use fromEvent() to convert Events into Observables that never complete.
+    We can apply take() and takeUntil() to an Observable to create a new sequence which does complete.
+*/
 		
 		
