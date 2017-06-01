@@ -208,4 +208,3 @@ function(window, $, showMovieLists, showError) {
 			error: errorHandler
 		});
 }
-				
