@@ -318,3 +318,74 @@ function(window, getJSON, showMovieLists, showError) {
 				showError(err);
 			});
 }
+
+/*
+Exercise 38: Throttle Input
+
+When dealing with user input, there will be times when the user's input is too noisy, and will potentially clog your servers with extraneous requests. We want the ability to throttle the users's input so that if they interacting for one second, then we will get the user input. Let's say for example, the user clicks a button once too many times upon saving and we only want to fire after they've stopped for a second.
+*/
+/*
+seq([1,2,3,,,,,,,4,5,6,,,]).throttleTime(1000 /* ms */) /* === seq([,,,,,,,3,,,,,,,,,,6,,,]);
+*/		
+function (clicks, saveData, name) {
+	return clicks
+		// TODO: Throttle the clicks so that it only happens every one second
+    .throttleTime(1000)
+		.concatMap(function () {
+			return saveData(name);
+		});
+}
+	
+/*  
+Exercise 39: Autocomplete Box
+
+One of the most common problems in web development is the autocomplete box. This seems like it should be an easy problem, but is actually quite challenging. For example, how do we throttle the input? How do we make sure we're not getting out of order requests coming back? For example if I type "react" then type "reactive" I want "reactive" to be my result, regardless of which actually returned first from the service.
+
+In the example below, you will be receiving a sequence of key presses, a textbox, and a function when called returns an array of search results.
+
+getSearchResultSet('react') === seq[,,,["reactive", "reaction","reactor"]]
+keyPresses === seq['r',,,,,'e',,,,,,'a',,,,'c',,,,'t',,,,,]
+*/
+function (getSearchResultSet, keyPresses, textBox) {
+
+	var getSearchResultSets =
+		keyPresses.
+			map(function () {
+				return textBox.value;
+			}).
+			throttleTime(1000).
+			concatMap(function (text) {
+				return getSearchResultSet(text).takesUntil(keyPresses);
+			});
+
+	return getSearchResultSets;
+}
+    
+		/*
+Exercise 40: Distinct Until Changed Input
+
+You'll notice in the previous exercise that if you pressed your arrow keys 
+while inside the textbox, the query will still fire, regardless of whether 
+the text actually changed or not. How do we prevent that? The distinctUntilChanged 
+filters out successive repetitive values.		
+*/
+
+/* seq([1,,,1,,,3,,,3,,,5,,,1,,,]).distinctUntilChanged() ===
+seq([1,,,,,,,3,,,,,,,5,,,1,,,]);
+*/
+function (keyPresses, isAlpha) {
+
+	return keyPresses.
+		map(function (e) { return String.fromCharCode(e.keyCode); }).  // [ { a..b...b....1...2..3....d... }]
+
+		// Ensure we only have alphabetic characters
+		filter(function (character) { return isAlpha(character); }).  // [ {a..b....b.....d... }]
+
+		// TODO: Filter out successive repetitive keys
+		distinctUntilChanged().																				// [ {a..b..........d...} ]
+		// Building up a string of all the characters typed.
+		scan(function (stringSoFar, character) {
+			return stringSoFar + character;
+		}, '');
+}
+		
