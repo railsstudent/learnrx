@@ -53,3 +53,29 @@ var textArea = document.getElementById("results");
 searchResults.forEach((resultSet) => {
   textArea.value = JSON.stringify(resultSet);
 })
+
+// Use Observable function distinctUntilChanged to ensure no two same inputs in the stream
+// make an sutocomplete box
+var searchResults = 
+    keypresses.
+     // {a..b.......c...d....}
+    throttle(20).   
+     // {...b...........d...}
+    map((key) => {
+      return textbox.value
+    }).
+    // {...'ab'...'ab'....'abcd'....}
+    distinctUntilChanged().
+    // {...'ab'...........'abcd'....}
+    map((search) => {
+      return getWikipediaSearchResults(search);
+    }).
+    // {...['abcde', 'dddd']....['cdefghh']...}
+    switch();  
+    // return latest result
+    //  { [cdefghh ] }  
+
+var textArea = document.getElementById("results");
+searchResults.forEach((resultSet) => {
+  textArea.value = JSON.stringify(resultSet);
+})
