@@ -30,3 +30,26 @@ function getWikipediaSearchResults(term) {
 getWikipediaSearchResults('Terminiator').forEach((result) => {
   console.log(result);
 })
+
+// make an sutocomplete box
+var searchResults = 
+    keypresses      
+     // {a..b.......c...d....}
+    .throttle(20)   
+     // {...b...........d...}
+    .map((key) => {
+      
+      /* {
+            {[aaaa], [bbbbb] },
+                                { [cdefghh ] }
+         }*/
+      return getWikipediaSearchResults(textbox.value);
+    })
+    .switch();  
+    // return latest result
+    //  { [cdefghh ] }  
+
+var textArea = document.getElementById("results");
+searchResults.forEach((resultSet) => {
+  textArea.value = JSON.stringify(resultSet);
+})
