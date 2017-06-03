@@ -54,8 +54,8 @@ searchResults.forEach((resultSet) => {
   textArea.value = JSON.stringify(resultSet);
 })
 
-// Use Observable function distinctUntilChanged to ensure no two same inputs in the stream
-// make an sutocomplete box
+// Use Observable function distinctUntilChanged() to ensure no two same inputs 
+// exist in the stream
 var searchResults = 
     keypresses.
      // {a..b.......c...d....}
@@ -80,4 +80,13 @@ searchResults.forEach((resultSet) => {
   textArea.value = JSON.stringify(resultSet);
 },  (error) => {
   alert('Error occurs, please try again later.');
+});
+
+// Click Search button to display search form
+// create search button click observable
+var searchButton = document.getElementById("searchButton");
+var searchButtonClick = Observable.fromEvent(searchButton, "click");
+var searchForm = document.getElementById("searchForm");
+searchButtonClick.forEach((click) => {
+  searchForm.style.display = "block";
 });
