@@ -389,3 +389,36 @@ function (keyPresses, isAlpha) {
 		}, '');
 }
 		
+/* Exercise 41: Autocomplete Box Part 2: Electric Boogaloo
+
+In the previous version of the autocomplete box, there were two bugs
+    Multiple successive searches are made for the same string
+    Attempts are made to retrieve results for an empty string.
+
+The example below is the same as above, but this time, fix the bugs!
+
+getSearchResultSet('react') === seq[,,,["reactive", "reaction","reactor"]]
+keyPresses === seq['r',,,,,'e',,,,,,'a',,,,'c',,,,'t',,,,,]
+*/		
+function (getSearchResultSet, keyPresses, textBox) {
+
+	var getSearchResultSets =
+		keyPresses.
+			map(function () {
+				return textBox.value;
+			}).
+			throttleTime(1000).
+
+			// TODO: Make sure we only get distinct values
+			distinctUntilChanged().
+			// TODO: Make sure the text is not empty
+			filter(function (search) {
+				return search.length > 0;
+			}).
+			concatMap(function (text) {
+				return getSearchResultSet(text).takeUntil(keyPresses);
+			});
+
+	return getSearchResultSets;
+}
+		
