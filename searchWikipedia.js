@@ -78,4 +78,6 @@ var searchResults =
 var textArea = document.getElementById("results");
 searchResults.forEach((resultSet) => {
   textArea.value = JSON.stringify(resultSet);
-})
+},  (error) => {
+  alert('Error occurs, please try again later.');
+});
