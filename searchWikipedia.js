@@ -94,6 +94,42 @@ var searchResults =
       takeUntil(searchFormCloses); // 1-dimensional array 
       // stop keypress observable when close button is clicked
    }).switch();
+   
+  // replace map and swith with flatMapLatest
+  var searchResults2 = 
+    // only subscribe to keypress when search is clicked
+    searchFormOpens.
+    flatMapLatest(function() {
+      var closeButton = document.getElementById("closeButton");
+      var closeButtonClick = Observable.fromEvent(closeButton, "click");
+
+      // close search form when close button observable is clicked
+      var searchFormCloses = closeButtonClick.
+                             doAction(function onNext() {
+                               //searchForm.style.display = "none";
+                               textbox.value = "";
+                               textArea.value = "";
+                             });
+      
+      return keypresses.
+       // {a..b.......c...d....}
+      throttle(20).   
+       // {...b...........d...}
+      map((key) => {
+        return textbox.value
+      }).
+      // {...'ab'...'ab'....'abcd'....}
+      distinctUntilChanged().
+      // {...'ab'...........'abcd'....}
+      flatMapLatest((search) => {
+        return getWikipediaSearchResults(search);
+      }).
+      // {...['abcde', 'dddd']....['cdefghh']...}
+      // return latest result
+      //  { [cdefghh ] }  
+      takeUntil(searchFormCloses); // 1-dimensional array 
+      // stop keypress observable when close button is clicked
+   });
 
 searchResults.forEach((resultSet) => {
   textArea.value = JSON.stringify(resultSet);
