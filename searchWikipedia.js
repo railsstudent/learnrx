@@ -1,4 +1,16 @@
-// use JQuery to call wikipedia to search Terminator
+var Observable = Rx.Observable;
+
+var textbox = document.getElementById("textbox");
+var textArea = document.getElementById("results");
+
+var keypresses = Observable.fromEvent(textbox, 'keypress');
+
+keypresses.forEach((x) => {
+  var code = x.keyCode || x.which;
+  var ch = String.fromCharCode(code);
+  //console.log({ code: ch });
+})
+
 var searchWikipedia = (term) => {
   const encodeTerm = encodeURIComponent(term);
   const url = `https://en.wikipedia.org/w/api.php?action=opensearch&format=json&search=${encodeTerm}&callback=?`;
@@ -7,11 +19,10 @@ var searchWikipedia = (term) => {
   });
   
 };
-searchWikipedia('Terminator');
 
-// Adapt JQuery getJSON to Observable function
-// import from rx.all.js
-var Observable = Rx.Observable;
+//searchWikipedia('Terminator');
+
+// return an observable object
 function getWikipediaSearchResults(term) {
   return Observable.create(function forEach(observer) {     
        let cancelled = false;
@@ -27,66 +38,65 @@ function getWikipediaSearchResults(term) {
     });
 }
 
-getWikipediaSearchResults('Terminiator').forEach((result) => {
-  console.log(result);
-})
+// getWikipediaSearchResults('Terminiator').forEach((result) => {
+//   console.log(result);
+// })
 
-// make an sutocomplete box
-var searchResults = 
-    keypresses      
-     // {a..b.......c...d....}
-    .throttle(20)   
-     // {...b...........d...}
-    .map((key) => {
-      
-      /* {
-            {[aaaa], [bbbbb] },
-                                { [cdefghh ] }
-         }*/
-      return getWikipediaSearchResults(textbox.value);
-    })
-    .switch();  
-    // return latest result
-    //  { [cdefghh ] }  
 
-var textArea = document.getElementById("results");
-searchResults.forEach((resultSet) => {
-  textArea.value = JSON.stringify(resultSet);
-})
-
-// Use Observable function distinctUntilChanged() to ensure no two same inputs 
-// exist in the stream
-var searchResults = 
-    keypresses.
-     // {a..b.......c...d....}
-    throttle(20).   
-     // {...b...........d...}
-    map((key) => {
-      return textbox.value
-    }).
-    // {...'ab'...'ab'....'abcd'....}
-    distinctUntilChanged().
-    // {...'ab'...........'abcd'....}
-    map((search) => {
-      return getWikipediaSearchResults(search);
-    }).
-    // {...['abcde', 'dddd']....['cdefghh']...}
-    switch();  
-    // return latest result
-    //  { [cdefghh ] }  
-
-var textArea = document.getElementById("results");
-searchResults.forEach((resultSet) => {
-  textArea.value = JSON.stringify(resultSet);
-},  (error) => {
-  alert('Error occurs, please try again later.');
-});
-
-// Click Search button to display search form
-// create search button click observable
+// create search button cl  ick observable
 var searchButton = document.getElementById("searchButton");
 var searchButtonClick = Observable.fromEvent(searchButton, "click");
 var searchForm = document.getElementById("searchForm");
-searchButtonClick.forEach((click) => {
-  searchForm.style.display = "block";
+
+// use doAction to perform side-effect
+// searchButtonClick.forEach((click) => {
+//   searchForm.style.display = "block";
+// });
+// when someone calls this observable, do this action
+var searchFormOpens = searchButtonClick.
+                        doAction(function onNext() {
+                          searchForm.style.display = "block";                          
+                        });
+
+// make an sutocomplete box
+var searchResults = 
+    // only subscribe to keypress when search is clicked
+    searchFormOpens.
+    map(function() {
+      var closeButton = document.getElementById("closeButton");
+      var closeButtonClick = Observable.fromEvent(closeButton, "click");
+
+      // close search form when close button observable is clicked
+      var searchFormCloses = closeButtonClick.
+                             doAction(function onNext() {
+                               searchForm.style.display = "none";
+                               textbox.value = "";
+                               textArea.value = "";
+                             });
+      
+      return keypresses.
+       // {a..b.......c...d....}
+      throttle(20).   
+       // {...b...........d...}
+      map((key) => {
+        return textbox.value
+      }).
+      // {...'ab'...'ab'....'abcd'....}
+      distinctUntilChanged().
+      // {...'ab'...........'abcd'....}
+      map((search) => {
+        return getWikipediaSearchResults(search);
+      }).
+      // {...['abcde', 'dddd']....['cdefghh']...}
+      switch().
+      // return latest result
+      //  { [cdefghh ] }  
+      takeUntil(searchFormCloses); // 1-dimensional array 
+      // stop keypress observable when close button is clicked
+   }).switch();
+
+searchResults.forEach((resultSet) => {
+  textArea.value = JSON.stringify(resultSet);
+}, (error) => {
+  alert('error occurs');
 });
