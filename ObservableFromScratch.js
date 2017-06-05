@@ -3,12 +3,12 @@ function Observable(forEach) {
 }
 
 Observable.prototype = {
-  forEach: function(onNext, onError, onComplete) {
+  forEach: function(onNext, onError, onCompleted) {
     if (typeof onNext === 'function') {
       return this._forEach({
         onNext: onNext,
         onError: onError || function() {},
-        onComplete: onComplete || function() {}
+        onCompleted: onCompleted || function() {}
       });
     } else {
        return this._forEach(onNext);
@@ -39,6 +39,26 @@ Observable.prototype = {
           function onCompleted() { return observer.onCompleted(); }
         );
     });
+  },
+    // return take observable
+  take: function(num) {
+    var self = this;
+    return new Observable(function forEach(observer) {
+        var counter = 0;
+        var subscription =  self.forEach(
+          function onNext(x) { 
+            observer.onNext(x);
+            counter++;
+            if (counter === num) {
+                observer.onCompleted();
+                subscription.dispose();
+            }
+          },
+          function onError(e) { return observer.onError(e); },
+          function onCompleted() { return observer.onCompleted(); }
+        );
+       return subscription;
+    });
   }
 }
 
@@ -58,3 +78,17 @@ Observable.fromEvent = function(dom, eventName) {
     }
   });
 }
+
+
+var button = document.getElementById("button");
+var buttonClick = Observable.fromEvent(button, "click").
+                  filter(function(x) { return x.pageX > 10; }).
+                  map(function(x) { return x.pageX + 'px'; });
+
+// buttonClick.forEach(function(x) {
+//   console.log({x: x});
+// });
+
+buttonClick.take(3).forEach(function(x) {
+  console.log({x: x});
+});
