@@ -83,12 +83,9 @@ Observable.fromEvent = function(dom, eventName) {
 var button = document.getElementById("button");
 var buttonClick = Observable.fromEvent(button, "click").
                   filter(function(x) { return x.pageX > 10; }).
-                  map(function(x) { return x.pageX + 'px'; });
+                  map(function(x) { return x.pageX + 'px'; }).
+                  take(10);
 
-// buttonClick.forEach(function(x) {
-//   console.log({x: x});
-// });
-
-buttonClick.take(3).forEach(function(x) {
+buttonClick.forEach(function(x) {
   console.log({x: x});
 });
